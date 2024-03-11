@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Poorman's Player</title>
+  <style>
+  body {
+    margin: 0;
+  }
+  #audio {
+    display: block;
+    position: sticky;
+    top: 0;
+    width: 100%;
+  }
+  #playlist li[iamplaying] {
+    text-decoration: underline;
+  }
+  </style>
+</head>
+<body>
+  <audio id="audio" controls autoplay></audio>
+  <input type="file" id="input" multiple>
+  <ul id="playlist"></ul>
+</body>
+
+<script>
+const input = document.getElementById('input');
+const audio = document.getElementById('audio');
+const playlist = document.getElementById('playlist');
+
+let songs = [];
+let curr = 0;
+
+const ATTR_PLAY = 'iamplaying';
+const setPlay = () => playlist.querySelector(`li:nth-child(${curr+1})`)?.setAttribute(ATTR_PLAY, '');
+const unsetPlay = (i) => playlist.querySelector(`li:nth-child(${i+1})`)?.removeAttribute(ATTR_PLAY);
+
+const play = (newCurr) => {
+  unsetPlay(curr);
+  const song = songs[newCurr];
+  const url = URL.createObjectURL(song);
+  audio.setAttribute('src', url);
+  audio.play();
+  curr = newCurr;
+  setPlay();
+};
+
+input.addEventListener('change', () => {
+  const newSongs = Array.from(input.files);
+  const currLen = songs.length;
+  newSongs.forEach(({ name }, i) => {
+    const li = document.createElement('li');
+    li.appendChild(document.createTextNode(name));
+    playlist.appendChild(li);
+    li.addEventListener('dblclick', () => play(currLen + i));
+  });
+  setPlay();
+  songs = songs.concat(newSongs);
+});
+
+audio.addEventListener('ended', () => play((curr + 1) % songs.length));
+</script>
+</html>
